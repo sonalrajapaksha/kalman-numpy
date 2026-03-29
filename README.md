@@ -143,9 +143,3 @@ matplotlib   # visualise.py only
 ```
 
 ---
-
-## References
-
-Kalman, R.E. (1960). A new approach to linear filtering and prediction problems.  
-Rauch, Tung, Striebel (1965). Maximum likelihood estimates of linear dynamic systems.  
-Welch & Bishop (2006). An introduction to the Kalman filter.
