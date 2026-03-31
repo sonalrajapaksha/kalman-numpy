@@ -9,7 +9,7 @@ Implementation of the linear Kalman Filter and Extended Kalman Filter using only
 ```
 kalman_quant/
 ├── src/
-│   ├── kalman.py          # core KF, RTS smoother, EM
+│   ├── kalman.py          # core KF, RTS smoother
 │   └── extended_kalman.py # EKF for nonlinear systems
 ├── main.py                       # four demos
 ├── visualise.py                  # plots
@@ -82,17 +82,6 @@ The predict and update equations then follow the same form as the linear filter,
 
 ---
 
-## EM Parameter Estimation
-
-If `Q` and `R` are unknown, the EM algorithm learns them from data. Each iteration runs:
-
-- **E-step** — run the filter and RTS smoother with current `Q`, `R`
-- **M-step** — update `Q` and `R` using closed-form expressions derived from the smoothed estimates
-
-Iterating to convergence gives maximum-likelihood estimates of the noise covariances.
-
----
-
 ## Demos
 
 **1. Signal extraction** — a latent AR(1) signal is corrupted by noise. The filter recovers the clean signal, reducing RMSE by ~57% versus the raw observations.
@@ -101,7 +90,6 @@ Iterating to convergence gives maximum-likelihood estimates of the noise covaria
 
 **3. Nonlinear tracking (EKF)** — a particle moves in a circle. The state `[x, y, vx, vy]` is nonlinear relative to the observations, so the EKF is used. Numerical Jacobians are computed automatically.
 
-**4. EM estimation** — Q and R are initialised at wrong values and recovered from data over 30 EM iterations.
 
 ---
 

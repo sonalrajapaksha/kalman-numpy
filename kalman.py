@@ -77,12 +77,12 @@ class KalmanFilter:
     # ── validation ──────────────────────────────────────────────────────────
 
     def _validate(self) -> None:  #make sure variables are correct dimension
-        assert self.F.shape  == (self.n, self.n),  "F must be (n×n)"
-        assert self.H.shape  == (self.m, self.n),  "H must be (m×n)"
-        assert self.Q.shape  == (self.n, self.n),  "Q must be (n×n)"
-        assert self.R.shape  == (self.m, self.m),  "R must be (m×m)"
+        assert self.F.shape  == (self.n, self.n),  "F must be (nxn)"
+        assert self.H.shape  == (self.m, self.n),  "H must be (mxn)"
+        assert self.Q.shape  == (self.n, self.n),  "Q must be (nxn)"
+        assert self.R.shape  == (self.m, self.m),  "R must be (mxm)"
         assert self.x0.shape == (self.n,),         "x0 must be length n"
-        assert self.P0.shape == (self.n, self.n),  "P0 must be (n×n)"
+        assert self.P0.shape == (self.n, self.n),  "P0 must be (nxn)"
 
     # ── forward pass (predict → update) ─────────────────────────────────────
 
@@ -155,8 +155,8 @@ class KalmanFilter:
     def _predict(self, x, P, u=None):
         x_pred = self.F @ x
         if u is not None and self.B is not None:
-            x_pred += self.B @ u
-        P_pred = self.F @ P @ self.F.T + self.Q
+            x_pred += self.B @ u #add control - u
+        P_pred = self.F @ P @ self.F.T + self.Q #Add process noise, every time predicted gets noisier
         return x_pred, P_pred
 
     # ── update step ──────────────────────────────────────────────────────────
@@ -191,10 +191,9 @@ class KalmanFilter:
 
     def smooth(self, result: KalmanResult) -> KalmanResult:
         """
-        Rauch–Tung–Striebel (RTS) smoother — backward pass.
+        (RTS) smoother — backward pass.
 
         Improves state estimates using all future information.
-        Modifies result in-place and returns it.
         """
         T  = result.x_filtered.shape[0]
         xs = result.x_filtered.copy()
@@ -211,44 +210,3 @@ class KalmanFilter:
         result.P_smoothed = Ps
         return result
 
-    # ── parameter estimation (EM) ─────────────────────────────────────────────
-
-    def em_step(self, Z: np.ndarray, result: KalmanResult) -> dict:
-        """
-        One M-step of the EM algorithm for parameter estimation.
-        Updates Q and R given the smoothed estimates.
-        Returns dict of updated parameters.
-        """
-        if result.x_smoothed is None:
-            raise ValueError("Run smooth() before em_step().")
-
-        T  = Z.shape[0]
-        xs = result.x_smoothed
-        Ps = result.P_smoothed
-        xp = result.x_predicted
-        Pp = result.P_predicted
-
-        # Cross-covariance  E[x_k x_{k-1}^T | Z_1:T]
-        Q_new = np.zeros_like(self.Q)
-        R_new = np.zeros_like(self.R)
-
-        for k in range(1, T):
-            G_k = result.P_filtered[k-1] @ self.F.T @ np.linalg.inv(Pp[k])
-            cross = Ps[k] + np.outer(xs[k], xs[k-1]) + G_k @ (Ps[k] - np.outer(xs[k], xs[k]))
-            err   = xs[k] - self.F @ xs[k-1]
-            Q_new += np.outer(err, err) + Ps[k] - self.F @ G_k.T @ Ps[k-1]
-
-        Q_new /= (T - 1)
-
-        for k in range(T):
-            z_k = Z[k]
-            obs = ~np.isnan(z_k)
-            if obs.any():
-                H_k = self.H[obs, :]
-                err  = z_k[obs] - H_k @ xs[k]
-                R_new[np.ix_(obs, obs)] += (
-                    np.outer(err, err) + H_k @ Ps[k] @ H_k.T
-                )
-
-        R_new /= T
-        return {"Q": Q_new, "R": R_new}

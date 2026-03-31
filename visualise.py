@@ -85,21 +85,3 @@ plt.close()
 print("fig3 done")
 
 
-# Fig 4: EM convergence
-d     = np.load("results/em_estimation.npz")
-iters = np.arange(len(d["ll_trace"]))
-
-fig, ax = plt.subplots(figsize=(8, 4))
-fig.suptitle("EM Parameter Estimation — Log-likelihood")
-
-ax.plot(iters, d["ll_trace"], marker="o", label="Log-likelihood")
-ax.axhline(d["ll_trace"][-1], ls="--", label=f"Converged={d['ll_trace'][-1]:.1f}")
-ax.legend(); ax.grid()
-ax.set_xlabel("Iteration"); ax.set_ylabel("Log-likelihood")
-
-plt.tight_layout()
-plt.savefig("results/fig4_em_convergence.png", dpi=130, bbox_inches="tight")
-plt.close()
-print("fig4 done")
-
-print("\nAll figures saved to results/")

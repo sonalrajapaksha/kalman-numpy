@@ -6,7 +6,6 @@ Demos for the Kalman Filter library.
 1. Signal extraction - recover a clean signal from noisy observations
 2. Trend extraction - separate level and slope from a noisy sequence
 3. Nonlinear tracking - EKF tracking a particle moving in a circle
-4. EM estimation - learn Q and R from data
 """
 
 import sys, os
@@ -136,34 +135,3 @@ np.savez("results/nonlinear_tracking.npz",
          kf_x=pos_kf[:, 0], kf_y=pos_kf[:, 1])
 
 
-# ── 4. EM parameter estimation ────────────────────────────────────────────────
-section("4. EM Parameter Estimation (learn Q and R)")
-
-Q_true = np.array([[0.01]])
-R_true = np.array([[0.50]])
-
-lat = np.zeros(T)
-for t in range(1, T):
-    lat[t] = lat[t-1] + np.sqrt(Q_true[0,0]) * rng.standard_normal()
-obs_em = lat + np.sqrt(R_true[0,0]) * rng.standard_normal(T)
-
-Q_est = np.array([[0.1]])
-R_est = np.array([[0.1]])
-ll_trace = []
-
-for _ in range(30):
-    kf_em = KalmanFilter(np.eye(1), np.eye(1), Q_est, R_est,
-                         np.zeros(1), np.eye(1))
-    res_em = kf_em.filter(obs_em.reshape(-1, 1))
-    res_em = kf_em.smooth(res_em)
-    ll_trace.append(res_em.log_likelihood)
-    upd    = kf_em.em_step(obs_em.reshape(-1, 1), res_em)
-    Q_est  = upd["Q"]
-    R_est  = upd["R"]
-
-print(f"  True  Q={Q_true[0,0]:.4f}  R={R_true[0,0]:.4f}")
-print(f"  EM    Q={Q_est[0,0]:.4f}  R={R_est[0,0]:.4f}")
-
-np.savez("results/em_estimation.npz", ll_trace=np.array(ll_trace))
-
-print("\n  All results saved to results/\n")
