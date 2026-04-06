@@ -11,9 +11,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Result container
-# ─────────────────────────────────────────────────────────────────────────────
 
 @dataclass
 class KalmanResult:
@@ -32,9 +29,6 @@ class KalmanResult:
     P_smoothed:     Optional[np.ndarray] = None
 
 
-# ─────────────────────────────────────────────────────────────────────────────
-# Core filter
-# ─────────────────────────────────────────────────────────────────────────────
 
 class KalmanFilter:
     """
@@ -74,7 +68,7 @@ class KalmanFilter:
 
         self._validate()
 
-    # ── validation ──────────────────────────────────────────────────────────
+    
 
     def _validate(self) -> None:  #make sure variables are correct dimension
         assert self.F.shape  == (self.n, self.n),  "F must be (nxn)"
@@ -84,7 +78,7 @@ class KalmanFilter:
         assert self.x0.shape == (self.n,),         "x0 must be length n"
         assert self.P0.shape == (self.n, self.n),  "P0 must be (nxn)"
 
-    # ── forward pass (predict → update) ─────────────────────────────────────
+    
 
     def filter(
         self,
@@ -122,14 +116,14 @@ class KalmanFilter:
         P = self.P0.copy()
 
         for k in range(T):
-            # ── PREDICT ────────────────────────────────────────────────────
+            
             u_k = U[k] if U is not None else None
             x, P = self._predict(x, P, u_k)
 
             xp[k] = x
             Pp[k] = P
 
-            # ── UPDATE (skip if all measurements missing) ───────────────────
+            
             z_k = Z[k]
             obs_idx = ~np.isnan(z_k)
 
@@ -150,7 +144,7 @@ class KalmanFilter:
             log_likelihood=ll,
         )
 
-    # ── predict step ─────────────────────────────────────────────────────────
+    
 
     def _predict(self, x, P, u=None):
         x_pred = self.F @ x
@@ -159,7 +153,7 @@ class KalmanFilter:
         P_pred = self.F @ P @ self.F.T + self.Q #Add process noise, every time predicted gets noisier
         return x_pred, P_pred
 
-    # ── update step ──────────────────────────────────────────────────────────
+    
 
     def _update(self, x, P, z, obs_idx):
         H_k = self.H[obs_idx, :]
@@ -187,7 +181,6 @@ class KalmanFilter:
 
         return x_upd, P_upd, inn, S_k, K_k, ll_k
 
-    # ── RTS smoother ─────────────────────────────────────────────────────────
 
     def smooth(self, result: KalmanResult) -> KalmanResult:
         """

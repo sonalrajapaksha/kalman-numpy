@@ -28,7 +28,7 @@ def rmse(a, b):
     return np.sqrt(np.mean((a - b)**2))
 
 
-# ── 1. Signal extraction ──────────────────────────────────────────────────────
+#signal extraction
 section("1. Signal Extraction")
 
 # AR(1) latent signal + noise
@@ -37,7 +37,6 @@ for t in range(1, T):
     signal_true[t] = 0.97 * signal_true[t-1] + 0.5 * rng.standard_normal()
 obs = signal_true + 1.5 * rng.standard_normal(T)
 
-# KF: AR(1) state, direct observation
 kf  = KalmanFilter(
     F=np.array([[0.97]]),
     H=np.array([[1.0]]),
@@ -60,7 +59,7 @@ np.savez("results/signal_extraction.npz",
          signal_kf=signal_kf, sigma_kf=sigma_kf)
 
 
-# ── 2. Trend extraction ───────────────────────────────────────────────────────
+#trend extraction
 section("2. Trend Extraction (local-linear model)")
 
 # simulated sequence with drift + noise
@@ -91,7 +90,6 @@ np.savez("results/trend_extraction.npz",
          upper=level+2*std, lower=level-2*std)
 
 
-# ── 3. Nonlinear tracking (EKF) ───────────────────────────────────────────────
 section("3. Nonlinear Tracking (EKF — circular motion)")
 
 # particle moves in a circle, we observe (x, y) + noise

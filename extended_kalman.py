@@ -1,13 +1,5 @@
 """
-extended_kalman_filter.py
-─────────────────────────
 Extended Kalman Filter for nonlinear systems.
-
-Model
-─────
-  x_k = f(x_{k-1}) + w_k     w_k ~ N(0, Q)
-  z_k = h(x_k)     + v_k     v_k ~ N(0, R)
-
 Jacobians of f and h can be supplied analytically or computed numerically.
 """
 
@@ -28,10 +20,6 @@ class EKFResult:
 
 class ExtendedKalmanFilter:
     """
-    Extended Kalman Filter for nonlinear f and h.
-
-    Parameters
-    ----------
     f     : state transition function  x_{k-1} -> x_k
     h     : observation function       x_k     -> z_k
     Q     : (n, n)  process noise covariance
